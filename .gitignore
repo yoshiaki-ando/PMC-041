@@ -1,0 +1,17 @@
+Debug/
+Release/
+*.dat
+*.gpt
+*.tgz
+*.o
+*.py
+main
+.cproject
+.project
+.settings/
+log.txt
+!/Latitude_Longitude.dat
+*.eps
+*.png
+xtics
+data/
