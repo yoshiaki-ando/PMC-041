@@ -121,8 +121,10 @@ void ObtainFittingPMC(
     const double alpha,
     const int i_alpha,
     double ***Observed_data,
+    double **rayleigh_intensity,
     const double *SolarRayIntensity,
-    const double *BackgroundIntensity);
+    const double *BackgroundIntensity,
+    double &shift_distance);
 
 std::complex <double> interpolated_m(double wavelength_in_m);
 

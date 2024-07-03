@@ -10,17 +10,12 @@
 
 #include "Fixed_parameter.h"
 #include "Date.h"
+#include "Across_pts.h"
 #include "Geocoordinate.h"
 #include "pmc_simulation.h"
 
-double mie_beta(AndoLab::Vector3d <double> r, void *parameters);
 
-/* 与えられた２点 r1, r2間の、与えられた時刻における光学的深さδを計算する
- * r1, r2 はひまわり座標
- */
-double Optical_depth(
-    AndoLab::Vector3d <double> &r2, AndoLab::Vector3d <double> &r1,
-    PMC &pmc, Parameters &param, const bool PMC_region);
+double mie_beta(AndoLab::Vector3d <double> r, void *parameters);
 
 
 /* rの点に太陽光が入射しているか */
@@ -101,14 +96,105 @@ double intensity_integral(
     }
 
     if ( is_illuminated(r_p, date) ){
-      Geocoordinate gr_p( r_p );
-      msis.calc_at( gr_p.altitude(), gr_p.latitude(), gr_p.longitude() );
 
       /* r の点がシャドウ領域でなければ
        * 1. 太陽方向の大気圏界面の点 r0 を見つける
        * 2. exp( - delta(r0,r) - delta(r,r2geo) ) * σ(θ) */
       AndoLab::Vector3d <double> r_i =
           upper_atmosphere_to_solar(r_p, date);
+
+      /* 大気圏内に入射から散乱点までの光学的深さ (レイリー) */
+      double optical_depth = vector_gauss_quadrature(beta, (void*)(&param), r_i, r_p);
+
+      /* 大気圏内に入射から散乱点までの光学的深さ (PMC) */
+      /* 2024/06/20 → 正確に計算したが、殆ど影響なし。誤差は 0.01%以下 */
+      if ( pmc_calc ){
+        AndoLab::Vector3d <double> r_pml_l[2], r_pml_u[2]; /* 探索するPMC層の上下限 */
+        AndoLab::Vector3d <double> integral_from[2], integral_to[2]; /* 探索結果に基づいた積分範囲 */
+        int Num_integral_region { 0 }; /* 積分すべき領域数 */
+        Across_pts PtsAcrossLowerPMC(r_p, r_i, Lower_PMC);
+        Across_pts PtsAcrossUpperPMC(r_p, r_i, Upper_PMC);
+
+        if ( region == LOWER_THAN_PML_LAYER ){
+          /* PMC領域は1つのみ(上下限が一つずつ) */
+          if ( (PtsAcrossLowerPMC.num == 1) && (PtsAcrossUpperPMC.num == 1) ){
+            Num_integral_region = 1;
+            integral_from[0] = PtsAcrossLowerPMC.r[0];
+            integral_to[0] = PtsAcrossUpperPMC.r[0];
+          } else {
+            std::cerr
+            << "Error (intensity_integral) : integral region is not correctly found! (Lower than PML layer)"
+            << "[Lower = " << PtsAcrossLowerPMC.num
+            << ", " << PtsAcrossUpperPMC.num << "]"
+            << std::endl;
+            exit(0);
+          }
+
+        } else if ( region == INSIDE_PML_LAYER ){
+          /* PMC領域は1つ、または2つ
+           * 1つのときは 上限が一つ見つかる → PMC層中の点からPMC層上限で大気圏を抜ける */
+          if ( (PtsAcrossLowerPMC.num == 0) && (PtsAcrossUpperPMC.num == 1) ){
+            Num_integral_region = 1;
+            integral_from[0] = r_p;
+            integral_to[0] = PtsAcrossUpperPMC.r[0];
+
+          } else if ( (PtsAcrossLowerPMC.num == 2) && (PtsAcrossUpperPMC.num == 1) ){
+            /* 2つのときは 下限が二つ、上限が一つ見つかる
+             * → PMC層中の点からPMC層下限を通って、PMC層下の領域へ行き、
+             * 別のPMC層下限から上限へ抜けて大気圏を抜ける */
+            Num_integral_region = 2;
+            integral_from[0] = r_p;
+            integral_to[0]   = PtsAcrossLowerPMC.r[0];
+
+            integral_from[1] = PtsAcrossLowerPMC.r[1];
+            integral_to[1]   = PtsAcrossUpperPMC.r[0];
+          } else {
+            std::cerr
+            << "Error (intensity_integral) : integral region is not correctly found! (inside PML layer) "
+            << "[Lower = " << PtsAcrossLowerPMC.num
+            << ", " << PtsAcrossUpperPMC.num << "]"
+            << std::endl;
+            exit(0);
+          }
+
+        } else {/* HIGHER_THAN_PML_LAYER */
+          if ( PtsAcrossUpperPMC.num == 0) {
+            /* 通常はPMC層を通らず上に抜ける */
+
+          } else if ( (PtsAcrossLowerPMC.num == 0) && (PtsAcrossUpperPMC.num == 2) ){
+            /* 領域1つ：一旦PMC層に入り、そのまま抜けてゆく。上限が二つ見つかる */
+            Num_integral_region = 1;
+            integral_from[0] = PtsAcrossUpperPMC.r[0];
+            integral_to[0] = PtsAcrossUpperPMC.r[1];
+
+          } else if ( (PtsAcrossLowerPMC.num == 2) && (PtsAcrossUpperPMC.num == 2) ){
+            /* 領域2つ：PMC層に入り、PMC層下の領域へ行って、再度PMC層を通って抜けてゆく。
+             * 上下限が二つずつ見つかる */
+            Num_integral_region = 2;
+            integral_from[0] = PtsAcrossUpperPMC.r[0];
+            integral_to[0] = PtsAcrossLowerPMC.r[0];
+            integral_from[1] = PtsAcrossLowerPMC.r[1];
+            integral_to[1] = PtsAcrossUpperPMC.r[1];
+
+          } else {
+            std::cerr
+            << "Error (intensity_integral) : integral region is not correctly found! (Higher than PML layer) "
+            << "[Lower = " << PtsAcrossLowerPMC.num
+            << ", " << PtsAcrossUpperPMC.num << "]"
+            << std::endl;
+            exit(0);
+          }
+
+        }
+        for(int n = 0; n < Num_integral_region; n++){
+//          std::cout << "From " << ( integral_from[n].abs() - Radius_of_Earth )*m2km
+//              << " To " << ( integral_to[n].abs() - Radius_of_Earth )*m2km << std::endl;
+          optical_depth += vector_gauss_quadrature(mie_beta, (void*)(&pmc), integral_from[n], integral_to[n]);
+        }
+      }
+
+      Geocoordinate gr_p( r_p );
+      msis.calc_at( gr_p.altitude(), gr_p.latitude(), gr_p.longitude() );
 
       /* 散乱係数 */
       double total_beta = sigma(th, lambda, &msis) * msis.N();
@@ -157,7 +243,7 @@ double intensity_integral(
       /* 反射の検討(ここまで) */
 
       I += std::exp(-delta) *
-          (std::exp( - Optical_depth(r_i, r_p, pmc, param, true) ) * total_beta + reflection * msis.N() )
+          (std::exp( -optical_depth ) * total_beta + reflection * msis.N() )
           * dr.abs();
     }
     pre_rp = r_p;

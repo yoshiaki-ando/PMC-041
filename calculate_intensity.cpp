@@ -9,6 +9,8 @@
 #include "Across_pts.h"
 #include "pmc_simulation.h"
 
+extern std::ofstream ofs_log;
+
 constexpr int j_pmc { 0 }; /* 将来的な複数PMC対応のための予備 */
 
 void calculate_intensity(
@@ -34,7 +36,8 @@ void calculate_intensity(
   AndoLab::Vector3d <double> Solar_d = r_s(Day_of_Year); /* 太陽の方向 */
 
   for(int iAlt = 0; iAlt < Number_of_Altitude; iAlt++){
-//    std::cout << iAlt << " / " << Number_of_Altitude << " : " << std::flush;
+//    std::cout << iAlt << " / " << Number_of_Altitude << " : " << std::endl;
+//    ofs_log << iAlt << " / " << Number_of_Altitude << " : " << std::endl;
     intensity[iAlt] = 0.0;
     double alt = Lower_Altitude + iAlt*Step_Altitude;
 
@@ -68,10 +71,9 @@ void calculate_intensity(
         pmc.calc_normalized_beta_th(th);
     }
 
+
+    /* 以下で、各高度の散乱光強度を計算。高速化の必要あり */
     if ( alt < Lower_PMC ){
-
-//      std::cout << "Lower than PMC region." << std::endl;
-
       double delta2r = 0.0;
       /* 大気圏上部からPMC層上部までの計算
        * Pts_atmos[0]     -> Pts_upper_pmc[0] …散乱点はレイリー */
@@ -126,6 +128,7 @@ void calculate_intensity(
           intensity_integral(Pts_upper_pmc[1], Pts_atmos[1],
               Day_of_Year, lambda,
               th, msis, delta2r, pmc, param, HIGHER_THAN_PML_LAYER, Integral_Interval);
+
 
     } else if ( alt < Upper_PMC ){ /* PMC内 */
 

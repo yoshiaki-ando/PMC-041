@@ -20,7 +20,7 @@ AndoLab::Vector3d <double> rotate_alpha(
 }
 
 /*
- * zx平面において、角度θだけ(+xに対して右ねじ方向に)回転
+ * zx平面において、角度θだけ(+yに対して右ねじ方向に)回転
  *
  * [x']   [ cosθ 0 sinθ][x]
  * [y'] = [  0    1   0  ][y]

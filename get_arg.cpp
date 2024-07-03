@@ -7,8 +7,8 @@
  * 引数から、解析する緯度・経度、日付・時刻を得る
  *
  * 引数の仕様
- * (実行ファイル) 緯度 経度 YYMMDD hhmm
- * argv[0]        [1]  [2]  [3]    [4]
+ * (実行ファイル) 緯度 経度 YYMMDD hhmm Subdirectory
+ * argv[0]        [1]  [2]  [3]    [4]  [5]
  */
 
 
@@ -23,7 +23,7 @@
 void get_arg(const int argc, char **argv, double &latitude, double &longitude,
     Date &date, AndoLab::Msis21 &msis){
 
-  if ( argc < 4 ){
+  if ( argc < 5 ){
     std::cerr << "Insufficient arguments." << std::endl;
     exit(1);
   }

@@ -105,6 +105,7 @@ public:
   double r0(void){ return pR0; };
   double sigma(void){ return pSigma; };
   double N0(void){ return pN0; };
+  void N0(const double vN0){ pN0 = vN0; };
 
   double scs_t(double Radius){ return mie.scs_t(Radius); };
   void calc_normalized_beta_th(double theta);
