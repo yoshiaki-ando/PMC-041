@@ -8,6 +8,8 @@
 #ifndef PMC_SIMULATION_H_
 #define PMC_SIMULATION_H_
 
+#include <string>
+
 #include <Msis21.h>
 #include <Vector3d.h>
 
@@ -33,6 +35,7 @@ constexpr int N_alt { 24 }; /* 43 - 20 + 1 = 24 */
 //constexpr int N_alt { 101 }; /* 43 - 20 + 1 = 24 */
 constexpr double dAlt { (Altitude_max - Altitude_min) / (N_alt-1) };
 
+constexpr int Maximum_convergence { 800 }; /* PMC最適化での反復回数上限 */
 
 class Parameters{
 private:
@@ -41,12 +44,19 @@ public:
   AndoLab::Msis21 *ptr_msis;
 };
 
+/* 収束しないときの反復回数 */
+extern int number_of_iteration;
+
+/* ジョブID */
+extern std::string process_id;
+
 /********************** 関数プロトタイプ **********************/
 
 /* 引数から緯度、経度、日付を取得 */
 void get_arg(const int argc, char **argv, double &latitude, double &longitude,
     Date &date,
-    AndoLab::Msis21 &msis);
+    AndoLab::Msis21 &msis, std::string &data_dir,
+    std::string &process_id);
 
 /* 緯度・経度から、計算に使う座標(ひまわり方向を +x方向)へ変換 */
 void convert_coordinate(

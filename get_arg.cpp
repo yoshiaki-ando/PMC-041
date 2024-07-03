@@ -21,20 +21,31 @@
 #include "pmc_simulation.h"
 
 void get_arg(const int argc, char **argv, double &latitude, double &longitude,
-    Date &date, AndoLab::Msis21 &msis){
+    Date &date, AndoLab::Msis21 &msis, std::string &data_dir,
+    std::string &process_id){
 
   if ( argc < 5 ){
     std::cerr << "Insufficient arguments." << std::endl;
     exit(1);
   }
 
+  process_id = "";
+
   /* 緯度、経度 設定 */
   latitude = std::stod( std::string( argv[1] ) );
   longitude = std::stod( std::string( argv[2] ) );
 
+  process_id += std::string( argv[1] ) + "_" + std::string( argv[2] ) + "_";
 
   std::string YYMMDD = argv[3];
   std::string hhmm = argv[4];
+
+  process_id += YYMMDD + "_" + hhmm + "_";
+
+  /* データ保存ディレクトリ */
+  data_dir = "data/" + std::string( argv[5] );
+
+  process_id += argv[5];
 
   int year = std::stoi( YYMMDD.substr(0,2) ); /* 使わない */
   int month = std::stoi( YYMMDD.substr(2,2) ); /* 月 */

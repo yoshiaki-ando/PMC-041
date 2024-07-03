@@ -14,8 +14,6 @@
 
 #include "pmc_simulation.h"
 
-int Num_iteration { 0 };
-
 AndoLab::Vector3d <double> rotate_alpha(AndoLab::Vector3d <double> r, const double alpha);
 AndoLab::Vector3d <double> rotate_theta(AndoLab::Vector3d <double> r, const double theta);
 
@@ -119,17 +117,18 @@ double ErrPMC(const std::vector <double> &Optimized_param, std::vector <double> 
   p->pmc[0].N0( density_coefficient * N0_base ); /* 数密度係数で、N0を設定 */
 
   /* 最適化している様子を出力 */
-  std::cout << Num_iteration  << " "
+  std::cout << number_of_iteration  << " "
       << std::sqrt( sq_err ) << " " /* Error */
-      << ( p->pmc[0].rc().abs() - Radius_of_Earth ) * m2km << " " /* Center Altitude */
-      << p->pmc[0].sig_z() * m2km << " " /* SD in altitude */
-      << p->pmc[0].sig_r() * m2km << " " /* SD in horizontal */
-      << p->pmc[0].r0() * 1e9 << " " /* Particle radius */
+      << ( p->pmc[0].rc().abs() - Radius_of_Earth ) * m2km << "km " /* Center Altitude */
+      << p->pmc[0].sig_z() * m2km << "km " /* SD in altitude */
+      << p->pmc[0].sig_r() * m2km << "km " /* SD in horizontal */
+      << p->pmc[0].r0() * 1e9 << "nm " /* Particle radius */
       << p->pmc[0].sigma() << " "    /* SD parameter of log-normal radius distribution */
-      << p->pmc[0].N0() * 1e-6 << " " /* Number density at the maximum (at the center) */
-      << Optimized_param[5] * m2km << " " /* horizontal shift */
+      << p->pmc[0].N0() * 1e-6 << "cm^-3 " /* Number density at the maximum (at the center) */
+      << Optimized_param[5] * m2km << "km " /* horizontal shift */
       << std::endl;
-  ofs_log << Num_iteration  << " "
+  ofs_log << "(" << process_id << ") "
+      << number_of_iteration  << " "
       << std::sqrt( sq_err ) << " " /* Error */
       << ( p->pmc[0].rc().abs() - Radius_of_Earth ) * m2km << " " /* Center Altitude */
       << p->pmc[0].sig_z() * m2km << " " /* SD in altitude */
@@ -140,7 +139,10 @@ double ErrPMC(const std::vector <double> &Optimized_param, std::vector <double> 
       << Optimized_param[5] * m2km << " " /* horizontal shift */
       << std::endl;
 
-  Num_iteration++;
+  number_of_iteration++;
+  if ( number_of_iteration > Maximum_convergence ){
+    throw nlopt::forced_stop();
+  }
   return std::sqrt( sq_err );
 }
 
@@ -213,11 +215,18 @@ void ObtainFittingPMC(
   opt.set_upper_bounds(UpperBound);
 
   double minf;
-  nlopt::result result = opt.optimize( Optimized_param, minf );
+
+  try {
+    number_of_iteration = 0;
+    nlopt::result result = opt.optimize( Optimized_param, minf );
+  } catch (std::exception &e){
+    std::cout << "Optimization of PMC parameters (" << process_id << ") failed. : " << e.what() << std::endl;
+    ofs_log << "Optimization of PMC parameters (" << process_id << ") failed. : " << e.what() << std::endl;
+  }
 
   /* pmcクラスに残っているパラメタ */
   ofs_log << "# pmc class\n"
-      << Num_iteration  << " "
+      << number_of_iteration  << " "
       << ( pmc[0].rc().abs() - Radius_of_Earth ) * m2km << " " /* Center Altitude [km] */
       << pmc[0].sig_z() * m2km << " " /* SD in altitude [km] */
       << pmc[0].sig_r() * m2km << " " /* SD in horizontal [km] */

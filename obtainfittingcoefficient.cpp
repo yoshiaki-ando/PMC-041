@@ -50,6 +50,12 @@ double SquareError(const std::vector <double> &Coef, std::vector <double> &grad,
     grad[0] = -2.0 * grad_err;
   }
 
+  number_of_iteration++;
+  if ( number_of_iteration > 10000 ){
+    throw nlopt::forced_stop();
+  }
+
+
   return err / N_alt;
 }
 
@@ -86,7 +92,13 @@ void ObtainFittingCoefficient(
     opt.set_xtol_rel(1.0e-2);
     std::vector <double> x(1, 1.0e4);
     double minf;
-    nlopt::result result = opt.optimize(x, minf);
+
+    try {
+      number_of_iteration = 0;
+      nlopt::result result = opt.optimize(x, minf);
+    } catch (std::exception &e){
+      std::cout << "Optimization of fitting coefficient (" << process_id << ") failed. : " << e.what() << std::endl;
+    }
 
 //    std::cout << jLambda << ", Optimized: " << x[0] << std::endl;
     SolarRayIntensity[jLambda] = x[0];

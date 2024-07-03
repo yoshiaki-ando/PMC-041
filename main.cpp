@@ -32,19 +32,13 @@
 std::ofstream ofs_log; /* ログ出力 */
 std::ofstream ofs_param; /* 計算したパラメタの出力 */
 bool logging { false };
+int number_of_iteration;
+
+std::string process_id;
 
 int main(int argc, char **argv){
 
   wrap_msisinit_(); /* MSIS初期化 */
-
-  /* 連続実行のため、引数5から data下のサブディレクトリを指定する */
-
-  std::string data_dir( "data/" + std::string(argv[5]) );
-  std::filesystem::create_directory("data");
-  std::filesystem::create_directory( data_dir );
-  ofs_param.open( data_dir + "/param.txt", std::ios::out);
-  ofs_log.open( data_dir + "/log.txt", std::ios::out);
-  ofs_log << "# Iteration Error CenterAlt[km] Sig_z[km] Sig_r[km] R0[nm] Sig_LogNormal[-] N0[x10^6 m^-3]\n";
 
   /************************************************************
    * 初期化
@@ -54,9 +48,17 @@ int main(int argc, char **argv){
   double latitude, longitude; /* 解析をする(観測点の)緯度・経度 */
 
   AndoLab::Msis21 msis;
+  std::string data_dir;
 
   /* 引数から、観測点の緯度・経度、(msisクラスへの)日付・時刻を取得 */
-  get_arg(argc, argv, latitude, longitude, date, msis);
+  get_arg(argc, argv, latitude, longitude, date, msis, data_dir, process_id);
+
+  /* 連続実行のため、引数5から data下のサブディレクトリを指定する */
+  std::filesystem::create_directory("data");
+  std::filesystem::create_directory( data_dir );
+  ofs_param.open( data_dir + "/param.txt", std::ios::out);
+  ofs_log.open( data_dir + "/log.txt", std::ios::out);
+  ofs_log << "# Iteration Error CenterAlt[km] Sig_z[km] Sig_r[km] R0[nm] Sig_LogNormal[-] N0[x10^6 m^-3]\n";
 
   /* 緯度・経度から、計算に使う座標(ひまわり方向を +x方向)への変換
    *
