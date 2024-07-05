@@ -151,10 +151,18 @@ double intensity_integral(
             integral_to[1]   = PtsAcrossUpperPMC.r[0];
           } else {
             std::cerr
-            << "Error (intensity_integral) : integral region is not correctly found! (inside PML layer) "
+            << "Error (" << process_id
+            << ", intensity_integral) : integral region is not correctly found! (inside PMC layer) "
             << "[Lower = " << PtsAcrossLowerPMC.num
             << ", " << PtsAcrossUpperPMC.num << "]"
             << std::endl;
+            std::cerr << PtsAcrossLowerPMC.r[0].x() * m2km << " "
+                << PtsAcrossLowerPMC.r[0].y() * m2km << " "
+                << PtsAcrossLowerPMC.r[0].z() * m2km << " -> "
+                << PtsAcrossUpperPMC.r[0].x() * m2km << " "
+                << PtsAcrossUpperPMC.r[0].y() * m2km << " "
+                << PtsAcrossUpperPMC.r[0].z() * m2km << " "
+                << std::endl;
             exit(0);
           }
 
@@ -179,7 +187,8 @@ double intensity_integral(
 
           } else {
             std::cerr
-            << "Error (intensity_integral) : integral region is not correctly found! (Higher than PML layer) "
+            << "Error (" << process_id
+            << ", intensity_integral) : integral region is not correctly found! (Higher than PMC layer) "
             << "[Lower = " << PtsAcrossLowerPMC.num
             << ", " << PtsAcrossUpperPMC.num << "]"
             << std::endl;
