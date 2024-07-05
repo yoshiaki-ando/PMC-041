@@ -43,7 +43,7 @@ void get_arg(const int argc, char **argv, double &latitude, double &longitude,
   process_id += YYMMDD + "_" + hhmm + "_";
 
   /* データ保存ディレクトリ */
-  data_dir = "data/" + std::string( argv[5] );
+  data_dir = "data/" + YYMMDD + "_" + hhmm + "_" + std::string( argv[5] );
 
   process_id += argv[5];
 
