@@ -134,7 +134,9 @@ double intensity_integral(
         } else if ( region == INSIDE_PML_LAYER ){
           /* PMC領域は1つ、または2つ
            * 1つのときは 上限が一つ見つかる → PMC層中の点からPMC層上限で大気圏を抜ける */
-          if ( (PtsAcrossLowerPMC.num == 0) && (PtsAcrossUpperPMC.num == 1) ){
+          if ( ( (PtsAcrossLowerPMC.num == 0) && (PtsAcrossUpperPMC.num == 1) ) ||
+              ( (PtsAcrossLowerPMC.num == 1) && (PtsAcrossUpperPMC.num == 1) ) /* 時折生じる、内側に接する場合 */
+              ){
             Num_integral_region = 1;
             integral_from[0] = r_p;
             integral_to[0] = PtsAcrossUpperPMC.r[0];
@@ -163,6 +165,8 @@ double intensity_integral(
                 << PtsAcrossUpperPMC.r[0].y() * m2km << " "
                 << PtsAcrossUpperPMC.r[0].z() * m2km << " "
                 << std::endl;
+            std::cerr << (PtsAcrossLowerPMC.r[0] - r_p) % PtsAcrossLowerPMC.r[0] << std::endl;
+            std::cerr << (PtsAcrossUpperPMC.r[0] - r_p) % PtsAcrossUpperPMC.r[0] << std::endl;
             exit(0);
           }
 
