@@ -69,7 +69,8 @@ int main(int argc, char **argv){
   AndoLab::Vector3d <double> r0;
   convert_coordinate(latitude, longitude, r0);
   Geocoordinate Geo_r0( r0 ); /* ひまわり座標・地理座標を扱う変換 */
-  std::cout << latitude << ", " << longitude << " ==> "
+  std::cout << process_id << " : "
+      << latitude << ", " << longitude << " ==> "
       << Geo_r0.latitude() << ", " << Geo_r0.longitude() << std::endl;
 
   double alpha = Geo_r0.alpha(); /* ひまわりから見た角度 */

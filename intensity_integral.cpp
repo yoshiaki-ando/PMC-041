@@ -123,9 +123,10 @@ double intensity_integral(
             integral_to[0] = PtsAcrossUpperPMC.r[0];
           } else {
             std::cerr
-            << "Error (intensity_integral) : integral region is not correctly found! (Lower than PML layer)"
+            << "Error (" << process_id
+            << ", intensity_integral) : integral region is not correctly found! (Lower than PMC layer)"
             << "[Lower = " << PtsAcrossLowerPMC.num
-            << ", " << PtsAcrossUpperPMC.num << "]"
+            << ", Upper = " << PtsAcrossUpperPMC.num << "]"
             << std::endl;
             exit(0);
           }

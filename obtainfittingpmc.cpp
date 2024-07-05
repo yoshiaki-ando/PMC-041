@@ -117,7 +117,8 @@ double ErrPMC(const std::vector <double> &Optimized_param, std::vector <double> 
   p->pmc[0].N0( density_coefficient * N0_base ); /* 数密度係数で、N0を設定 */
 
   /* 最適化している様子を出力 */
-  std::cout << number_of_iteration  << " "
+  std::cout << "(" << process_id << ") "
+      << number_of_iteration  << " "
       << std::sqrt( sq_err ) << " " /* Error */
       << ( p->pmc[0].rc().abs() - Radius_of_Earth ) * m2km << "km " /* Center Altitude */
       << p->pmc[0].sig_z() * m2km << "km " /* SD in altitude */
