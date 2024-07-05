@@ -18,16 +18,20 @@
 
 void get_observation_data(
     double ***intensity,
-    double **latlon
+    double **latlon,
+    char **argv
     ){
 
   std::string line;
+  std::string YYMMDD( argv[3] );
+  std::string hhmm( argv[4] );
 
   constexpr int Offset_for_not_altitude_data { 2 }; /* 最初の2行は緯度・経度情報 */
 
   for(int j_lambda = 0; j_lambda < Num_Lambda; j_lambda++){
 //    std::ifstream ifs( ("data/h08_b0" + std::to_string(j_lambda+1) + "_s01s02_20160709_210000.txt").c_str() );
-    std::ifstream ifs( ("data/h08_b0" + std::to_string(j_lambda+1) + "_s01s02_20160709_210000.txt").c_str() );
+    std::ifstream ifs( (obs_data_dir + "/h08_b0" + std::to_string(j_lambda+1) +
+        "_s01s02_20" + YYMMDD + "_" + hhmm + "00.txt").c_str() );
     std::getline(ifs, line); /* 1行目はただ height */
     std::getline(ifs, line); /* 2行目は lat lon 0 〜 100 */
 

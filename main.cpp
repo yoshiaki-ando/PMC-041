@@ -36,6 +36,8 @@ int number_of_iteration;
 
 std::string process_id;
 
+std::string obs_data_dir("/home/ando/98-Local/PMC_data/convert_data");
+
 int main(int argc, char **argv){
 
   wrap_msisinit_(); /* MSIS初期化 */
@@ -99,7 +101,7 @@ int main(int argc, char **argv){
   double ***Observed_data
   = AndoLab::allocate_memory3d(Num_Lambda, Num_observed_data_latitude, Num_observed_data_altitude, 0.0);
   double **Obsrvd_LatLon = AndoLab::allocate_memory2d(2, Num_observed_data_latitude, 0.0);
-  get_observation_data(Observed_data, Obsrvd_LatLon);
+  get_observation_data(Observed_data, Obsrvd_LatLon, argv);
 
   /* 観測データのうち、この計算で求める緯度・経度のデータのインデックスを取得する */
   const int i_alpha = select_latlon( Obsrvd_LatLon, latitude, longitude );

@@ -8,6 +8,8 @@
 #ifndef PMC_OBSERVATION_H_
 #define PMC_OBSERVATION_H_
 
+#include <string>
+
 constexpr int Num_observed_data_altitude { 101 };  /* 高度方向のデータ数 */
 constexpr int Num_observed_data_latitude { 44*2 }; /* 緯度のデータ数 */
 
@@ -17,12 +19,15 @@ constexpr double DAltitude_observed { 1.0e3 };      /* 観測データの高度�
 
 constexpr int Idx_background { 90 }; /* 背景光強度を求める最低高度のインデックス */
 
+extern std::string obs_data_dir;
+
 /*
  * 観測データを取得する
  */
 void get_observation_data(
     double ***intensity,
-    double **latlon
+    double **latlon,
+    char **argv
     );
 
 /*
